@@ -13,7 +13,9 @@ import glob
 
 os.chdir('/Users/harrysteinharter/Documents/MSc/Timo Internship/Pilot_V4_mandoh')
 import otherFunctions as OF # Has to go after changing directory bc of it's location
+global small
 small = True # Logical indicating if we are running the experiment with a lot of images
+pilotThree = False # indicating if I am  only testing  session 3
 
 #### Set up window ####
 screenDim = np.array([2560, 1600])
@@ -46,7 +48,8 @@ else:
     thisSession = df['session'].max() + 1
     dataFile = open(fullFile, 'a')
 
-thisSession = 3 ######## Remember to delete!! 
+if pilotThree:
+    thisSession = 3 ######## Remember to delete!! 
 #### Load images ####
 condA, condB = trainShape+'_'+trainLocations[0:2], trainShape+'_'+trainLocations[3:5]
 if thisSession == 3:
@@ -96,8 +99,11 @@ nullOdds = 0.2                                                                  
 
 #### Experiment Here ####
 def trainingOneTwo():
+    global small
     whatDo = visual.TextStim(myWin, color = 'black', text = f'This is training. You are looking for the {trainShape} SHAPE in the {trainLocations} locations. Press any key to continue.')
-    nTrials = 4
+    nTrials = 20
+    if small:
+        nTrials = 6
     nEach = nTrials//2
     trainStim = np.vstack((null_stim_array[0:nEach],stim_array[0:nEach]))
     T_wait = 1
@@ -137,8 +143,11 @@ def trainingOneTwo():
                 core.quit()
 
 def trainingThree(a,b,c):
+    global small
     whatDo = visual.TextStim(myWin, color = 'black', text = f'This is training. You are looking for the {b} SHAPE in the {c} locations. Press any key to continue.')
-    nTrials = 4
+    nTrials = 20
+    if small:
+        nTrials = 4
     nEach = nTrials//2
     trainStim = np.vstack((null_stim_array[0:nEach],a[0:nEach]))
     T_wait = 1
@@ -192,9 +201,13 @@ def sessionOneTwo():
     blockClock = core.Clock()
     thisBlock = 0
     
-    intro_m = visual.TextStim(win = myWin, text = f'You are looking for the {trainShape} SHAPE in the {trainLocations} locations. Press any key to continue.', color = 'black')
+    intro_m = visual.TextStim(win = myWin, text = f'You are looking for the {trainShape} SHAPE in the {trainLocations} LOCATIONS. Press any key to continue.', color = 'black')
     break_m = visual.TextStim(win = myWin, text = f'Take a short break for at least {T_break} seconds. You can stretch, go on your phone, get some water, just relax :)', color = 'black')
-    continue_m = visual.TextStim(win = myWin, text = f'It has been {T_break} seconds. You can keep resting or you can continue if you are ready. The next block will be exactly the same as the previous one. Press any key to continue.', color = 'black')
+    continue_m = visual.TextStim(win = myWin, text = f"""It has been {T_break} seconds. 
+    You can keep resting or you can continue if you are ready. 
+    The next block will be exactly the same as the previous one. 
+    You are still looking for {trainShape} SHAPE in {trainLocations} LOCATIONS.
+    Press any key to continue.""", color = 'black')
     blank = visual.TextStim(win = myWin, text = "You shouldn't see this", color = (0,0,0))
     fixation = visual.GratingStim(win=myWin, color=1, colorSpace='rgb',tex=None, mask='cross', size=0.2, pos = [0,0])
     
@@ -295,9 +308,9 @@ def sessionThree():
                 )
             blockShape, blockLocation = OF.textExtract(thisBlock_array[0,0])
             if blockLocation == 'TL':
-                blockLocation = 'TL & BR'
+                blockLocation = 'TL_BR'
             else:
-                blockLocation = 'TR & BL'
+                blockLocation = 'TR_BL'
             intro_m.text = f"This is not training. You are looking for the {blockShape} SHAPE in the {blockLocation} LOCATION. Press any key to continue."
             # do training
             trainingThree(thisBlock_array,blockShape,blockLocation)
@@ -322,9 +335,9 @@ def sessionThree():
             # Display messages
             blockShape, blockLocation = OF.textExtract(thisBlock_array[0,0])
             if blockLocation == 'TL':
-                blockLocation = 'TL & BR'
+                blockLocation = 'TL_BR'
             else:
-                blockLocation = 'TR & BL'
+                blockLocation = 'TR_BL'
             continue_m.text = f"""This is not training.
             You can keep resting or you can continue if you are ready.
             The next block will show the {blockShape} SHAPE in the {blockLocation} LOCATION.
