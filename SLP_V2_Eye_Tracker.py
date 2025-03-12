@@ -16,7 +16,7 @@ os.chdir('/Users/visionlab/Documents/Wouter/Exp3-SLS-main')
 #os.chdir('/Users/harrysteinharter/Documents/MSc/Timo Internship/Pilot_V4_mandoh')
 import otherFunctions as OF # Has to go after changing directory bc of it's location
 small = True # Logical indicating if we are running the experiment with a lot of images
-pilotThree = False # indicating if we are only doing session 3
+pilotThree = True # indicating if we are only doing session 3
 
 #### Set up window ####
 screenDim = np.array([2560, 1600])
@@ -54,8 +54,8 @@ if pilotThree:
 
 fileName = str(nSub)+str(thisSession)+'.edf'
 outPath = "./output_eye/"
-
 localFile = outPath + fileName
+
 #### Load images ####
 condA, condB = trainShape+'_'+trainLocations[0:2], trainShape+'_'+trainLocations[3:5]
 if thisSession == 3:
@@ -110,7 +110,7 @@ if dummy == True:
 else:
     tracker = pylink.EyeLink("100.1.1.2:255.255.255.0")  # our eyelink is at 100.1.1.2:255.255.255.0. default is 100.1.1.1:...
 
-tracker.openDataFile(str(nSub)+'.edf')
+tracker.openDataFile(fileName)
 tracker.sendCommand("screen_pixel_coords = 0 0 1919 1079")
 
 pylink.openGraphics()
@@ -312,6 +312,7 @@ def sessionThree():
     fixation = visual.GratingStim(win=myWin, color=1, colorSpace='rgb',tex=None, mask='cross', size=0.2, pos = [0,0])
     diode = visual.GratingStim(win=myWin, color=-1, colorSpace='rgb',tex=None, mask='circle', units = 'pix', size=80, pos = [-780,-440],autoDraw=True)
     
+    tracker.startRecording(1,1,1,1)
     for trial in range(maxTrials):
         if trial == 0:
             # Set up the first staircase
@@ -370,8 +371,7 @@ def sessionThree():
             event.waitKeys()
             OF.countdown(myWin)
         #### The actual experimental loop ####
-        tracker.startRecording(1,1,1,1)
-        tracker.sendMessage(f"TRIAL_START {trial_num}")
+        tracker.sendMessage(f"TRIAL_START {trial}")
         if random.random() <= nullOdds:
             thisLabel, thisImage = random.choice(null_stim_array)
             thisShape, thisLocation = 'NA','NA'
@@ -391,8 +391,8 @@ def sessionThree():
         diode.color *= -1
         OF.drawOrder(blank,myWin)
         trialClock.reset()
-        tracker.sendMessage(f"TRIAL_END {trial_num}")
-        tracker.stopRecording()
+        tracker.sendMessage(f"TRIAL_END {trial}")
+#        tracker.stopRecording()
         keys = event.waitKeys(keyList = keylist, maxWait = T_response)
         
         # Record response
@@ -425,7 +425,7 @@ def sessionThree():
             rt = T_response
         stairs.addResponse(response)
         dataFile.write(f"{nSub},{thisSession},{trainShape},{trainLocations},{thisBlock+1},{trial+1},{thisShape},{thisLocation},{thisLabel},{thisIntensity},{response},{rt}\n")
-    closeTracker(tracker,fullFile,localFile)
+    closeTracker(tracker,fileName,localFile)
 
 
 hello = visual.TextStim(myWin, color='black',text = """Welcome! This first part is training. 
