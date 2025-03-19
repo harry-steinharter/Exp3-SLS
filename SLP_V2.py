@@ -1,3 +1,5 @@
+
+#%%
 from psychopy.hardware import keyboard
 from psychopy import core, visual, data, event#, gui #psychopy.gui doesn't work in lab
 from psychopy.tools.filetools import fromFile, toFile
@@ -10,15 +12,16 @@ import re
 import pickle
 import pandas as pd
 import glob
-
+import importlib
+#%%
 os.chdir('/Users/harrysteinharter/Documents/MSc/Timo Internship/Pilot_V4_mandoh')
 import otherFunctions as OF # Has to go after changing directory bc of it's location
+importlib.reload(OF) # Allows me to edit OF w/out restartig VSCode
 global small
 small = True # Logical indicating if we are running the experiment with a lot of images
-pilotThree = False # indicating if I am  only testing  session 3
-
+pilotThree = True # indicating if I am  only testing  session 3
+#%%
 #### Set up window ####
-screenDim = np.array([2560, 1600])
 myWin = visual.Window(monitor = 'myMacbook', fullscr = False, colorSpace = 'rgb', color = (0,0,0), bpc = (10,10,10), depthBits=10, units = 'deg')
 
 #### Establish participant number ####
@@ -49,8 +52,9 @@ else:
     dataFile = open(fullFile, 'a')
 
 if pilotThree:
-    thisSession = 3 ######## Remember to delete!! 
+    thisSession = 3
 #### Load images ####
+
 condA, condB = trainShape+'_'+trainLocations[0:2], trainShape+'_'+trainLocations[3:5]
 if thisSession == 3:
     stimuli = OF.loadImages(myWin,ALL=True,small = small)
@@ -66,6 +70,8 @@ if thisSession == 3:
     BC_TR_BL_array = np.array([c for c in stim_array if c[0].startswith(('BC_TR', 'BC_BL'))])
     blockConditions = [C_TL_BR_array,C_TR_BL_array,BC_TL_BR_array,BC_TR_BL_array]
     random.shuffle(blockConditions)
+else:
+    blockConditions = [stim_array]*4
 
 if small:
     nullStim = OF.loadNull(myWin,n = len(stim_array),small = small) # len(x)//4 when I have enough images
@@ -84,7 +90,7 @@ else:
     nNull = nReal // 4
 nBlocks = 4                                                                            # Number of blocks
 maxTrials = (nReal + nNull) * nBlocks                                                  # Number of trials per staircase before it can close
-breakTrials = np.linspace(0,maxTrials,nBlocks+1, dtype='int')[1:-1]                    # Trial numbers where a break happens
+breakTrials = np.linspace(0,maxTrials,nBlocks+1, dtype='int')[:-1]                    # Trial numbers where a break happens
 T_response = .5#float('inf')                                                               # float('inf') or 0.5 Time for them to respond (s)
 T_intertrial = .5                                                                       # Intertrial time (s)
 T_stim = .25                                                                            # Stimulus presentation time (s)
@@ -277,13 +283,12 @@ def sessionOneTwo():
 
 def sessionThree():
     
+    #### Initialize Variables ####
     trialClock = core.Clock()
     blockClock = core.Clock()
-    thisBlock = 0
-    blockShape, blockLocation = 'ABCD', 'WXYZ'
-    intro_m = visual.TextStim(win = myWin, text = f"""This is the experiment now.
-    You are looking for the {blockShape} SHAPE in the {blockLocation} LOCATION.
-    Press any key to continue.""", color = 'black')
+    blockShape, blockLocation = 'PLACE','HOLDER'
+    thisBlock = -1
+    intro_m = visual.TextStim(win = myWin, text = 'Placeholder', color = 'black')
     break_m = visual.TextStim(win = myWin, text = f'Take a short break for at least {T_break} seconds. You can stretch, go on your phone, get some water, just relax :)', color = 'black')
     continue_m = visual.TextStim(win = myWin, text = f"""This is not training.
     You can keep resting or you can continue if you are ready.
@@ -426,3 +431,5 @@ core.wait(5)
 
 event.clearEvents()
 core.quit()
+
+# %%
