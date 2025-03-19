@@ -38,8 +38,8 @@ def loadingBar(myWin, c, first:bool,w=1.8,h=.2):
     else:
         f = 'second'
     ed = ((2-w)/2)-1 # edge position. `norm` units range -1:1
-    barBox = Rect(myWin,units='norm',pos = (0,-.7),size=(w,h),lineColor='black',lineColorSpace='rgb')
-    barFill = Rect(myWin,units='norm',pos = (ed+(.5*w*c),-.7),size=(w*c,h),fillColor = 'black', fillColorSpace='rgb')
+    barBox = Rect(myWin,units='norm',pos = (0,-.7),size=(w,h),lineColor='black',colorSpace='rgb',fillColor = (0,0,0))
+    barFill = Rect(myWin,units='norm',pos = (ed+(.5*w*c),-.7),size=(w*c,h),fillColor = 'black', colorSpace='rgb')
     textFill = TextStim(myWin, text = f"Loading {f} image set... {int(c*100)}%", color = 'white', pos=(0,-.7),units='norm', height = h*.75, wrapWidth = w)
     drawOrder([barBox,barFill,textFill],myWin)
 
@@ -51,13 +51,13 @@ def loadImages(myWin,condA=None,condB=None,ALL=False,small = True):
     file_list = os.listdir(imgPath)
     if not ALL:
         file_list = [file for file in file_list if (file.startswith(condA) or file.startswith(condB))]  # Keep only files from the current condition
-    if all:
+    else:
         file_list = [file for file in file_list if file.endswith('.png')] # remove invisible files like `.DS_Store` and folder like `Null`
     
-    stimuli = {}
+    stimuli = np.zeros_like(file_list,dtype='O')
     for file in file_list:
         key = os.path.splitext(file)[0]
-        stimuli[key] = ImageStim(win = myWin, image = os.path.join(imgPath,file), contrast = 1.0, size = (14.25,14.25), units = 'deg', name = key) # Size from Mandoh's paper
+        stimuli[file_list.index(file)] = ImageStim(win = myWin, image = os.path.join(imgPath,file), contrast = 1.0, size = (14.25,14.25), units = 'deg', name = key) # Size from Mandoh's paper
             # visual.ImageStim.contrast ranges from -1 to 1. < 0 is inverted colors so we will not use that.
         #print(f"Stimulus {key} created.")
         i = file_list.index(file)
@@ -74,11 +74,11 @@ def loadNull(myWin,n,small=True):
     file_list = [file for file in file_list if file.endswith('.png')] # remove invisible files like `.DS_Store`
     file_list = random.sample(file_list, k=n)
     
-    stimuli = {}
+    stimuli = np.zeros_like(file_list,dtype='O')
     for file in file_list:
         key = 'Null'+os.path.splitext(file)[0][-2:]
-        print(key)
-        stimuli[key] = ImageStim(win = myWin, image = os.path.join(imgPath,file), contrast = 1.0, size = (14.25,14.25), units = 'deg', name=key) # Size from Mandoh's paper
+        #print(key)
+        stimuli[file_list.index(file)] = ImageStim(win = myWin, image = os.path.join(imgPath,file), contrast = 1.0, size = (14.25,14.25), units = 'deg', name=key) # Size from Mandoh's paper
             # visual.ImageStim.contrast ranges from -1 to 1. < 0 is inverted colors so we will not use that.
         #print(f"Stimulus {key} created.")
         i = file_list.index(file)
@@ -136,3 +136,12 @@ def countdown(win):
         cd = TextStim(win, color = 'black', text = f"Experiment will continue in {math.ceil(t.getTime())}...")
         drawOrder(cd,win)
 
+def giveFeedback(stim,resp):
+    # Gives feedback by changing the color of the stimulus (e.g. fixation cross) to red|green
+    if resp == 1: # Correct
+        stim.color = 'green'
+    elif resp == 0: # Incorrect
+        stim.color = 'red'
+    else:
+        stim.color = 'blue'
+        print("ERROR: Why is it blue?")
